@@ -1,1 +1,3 @@
-# distributed-audio-pipeline
+# Distributed Audio Processing Pipeline with Observability
+
+## Overview
