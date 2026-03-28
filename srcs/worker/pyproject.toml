@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "distributed-audio-pipeline-worker"
+version = "0.1.0"
+description = "Worker service for distributed audio pipeline"
+authors = ["Distributed Audio Pipeline Contributors"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+psycopg = { extras = ["binary"], version = "3.2.6" }
+pika = "1.3.2"
+minio = "7.2.15"
+prometheus-client = "0.21.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
+
+[build-system]
+requires = ["poetry-core>=1.9.0"]
+build-backend = "poetry.core.masonry.api"
