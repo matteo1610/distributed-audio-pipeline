@@ -9,21 +9,12 @@
 \newcommand{\emailaddr}[1]{\href{mailto:#1}{\texttt{#1}}}
 
 \title{\LARGE
-    Final Report Template\\
-    (replace with your project name)
+    Distributed Audio Processing Pipeline with Observability
 }
-\subtitle{Final Report for the Distributed Systems Course [Your academic year here]}
-
-% Consider watching:
-% https://www.youtube.com/watch?v=ihxSUsJB_14
-% https://www.youtube.com/watch?v=XTFWaV55uDo
+\subtitle{Final Report for the Distributed Systems Course AY 2025/2026}
 
 \author{
-    Author 1 \\ \emailaddr{author1@email.it}
-    \and
-    Author 2 \\ \emailaddr{author2@gmail.com}
-    \and
-    Author 3 \\ \emailaddr{author3@unibo.it}
+    Matteo Cardellini \\ \emailaddr{matteo.cardellini@studio.unibo.it}
 }
 
 \date{\today}
@@ -33,7 +24,9 @@
 \maketitle
 
 \begin{abstract}
-    Up to $\sim$2000 characters briefly describing the project.
+  This project presents a distributed, event-driven pipeline for asynchronous audio processing with built-in observability. Users upload audio files through a FastAPI service, which stores raw objects in MinIO, persists job metadata in PostgreSQL, and publishes processing requests to RabbitMQ. A decoupled worker service consumes queued jobs, extracts basic audio features (duration, sample rate, and number of channels), and writes results back to the database. The API exposes endpoints for upload, job-status tracking, and result retrieval, enabling a complete end-to-end workflow from submission to processed output.
+
+  The architecture is designed to satisfy key distributed-systems goals: scalability through independent horizontal scaling of API and workers, loose coupling via asynchronous messaging, and resilience through durable queues and explicit job-state transitions (PENDING, PROCESSING, DONE, FAILED). To support operational analysis, both services export Prometheus-compatible metrics that can be integrated into dashboards for throughput and latency monitoring. The full stack is containerized with Docker Compose, ensuring reproducible deployment and simplifying local experimentation. Overall, the system demonstrates how message-driven coordination, persistent state management, and observability can be combined into a practical distributed audio-processing application.
 \end{abstract}
 
 \section*{Disclaimer (if needed)}
@@ -44,46 +37,46 @@ After using this tool/service,
 the author(s) reviewed and edited the content as needed 
 and take(s) full responsibility for the content of the final report/artifact.
 
-\section*{Quick \LaTeX{} suggestions}
+% \section*{Quick \LaTeX{} suggestions}
 
-If you need to cite a reference, you can use the \texttt{cite} command, 
-like providing the BibTex key of some entry in the \texttt{references.bib} file, 
-e.g.: \cite{adams1995hitchhiker}.
+% If you need to cite a reference, you can use the \texttt{cite} command, 
+% like providing the BibTex key of some entry in the \texttt{references.bib} file, 
+% e.g.: \cite{adams1995hitchhiker}.
 
-You can find pre-coocked BibTex entries for most Computer Science papers on \href{https://dblp.uni-trier.de/}{DBLP}.
+% You can find pre-coocked BibTex entries for most Computer Science papers on \href{https://dblp.uni-trier.de/}{DBLP}.
 
-If you need to include an image,
-let \LaTeX{} decide where to put it by using the \texttt{figure} environment,
-with a \texttt{includegraphics} command inside it.
-%
-If your need to reference a figure,
-use the \texttt{label} command to assign a label to the figure,
-and then use the \texttt{cref} command to reference it.
-%
-Put figures in the \texttt{figures} folder.
-%
-A complete example is shown in \cref{fig:universe}.
+% If you need to include an image,
+% let \LaTeX{} decide where to put it by using the \texttt{figure} environment,
+% with a \texttt{includegraphics} command inside it.
+% %
+% If your need to reference a figure,
+% use the \texttt{label} command to assign a label to the figure,
+% and then use the \texttt{cref} command to reference it.
+% %
+% Put figures in the \texttt{figures} folder.
+% %
+% A complete example is shown in \cref{fig:universe}.
 
-\begin{figure}
-    \centering
-    \includegraphics[width=0.5\textwidth]{figures/universe.jpg}
-    \caption{This is an example image}
-    \label{fig:universe}
-\end{figure}
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=0.5\textwidth]{figures/universe.jpg}
+%     \caption{This is an example image}
+%     \label{fig:universe}
+% \end{figure}
 
-Do \textbf{not} put any placement constraint on figures,
-such as \texttt{[h]} or \texttt{[h!]}.
-%
-Same considerations apply for other floating elements 
-(e.g. tables, algorithms, listings, etc.).
+% Do \textbf{not} put any placement constraint on figures,
+% such as \texttt{[h]} or \texttt{[h!]}.
+% %
+% Same considerations apply for other floating elements 
+% (e.g. tables, algorithms, listings, etc.).
 
-Do \textbf{not} use the \texttt{\textbackslash\textbackslash} or \texttt{\textbackslash newline} commands to break lines.
+% Do \textbf{not} use the \texttt{\textbackslash\textbackslash} or \texttt{\textbackslash newline} commands to break lines.
 
-Just leave an empty line between two paragraphs to start a new one.
-%
-The new line will be automatically indented.
-%
-This is intended: it is the \LaTeX{} way to separate capoverses.
+% Just leave an empty line between two paragraphs to start a new one.
+% %
+% The new line will be automatically indented.
+% %
+% This is intended: it is the \LaTeX{} way to separate capoverses.
 
 \section{Concept}\label{concept}
 
