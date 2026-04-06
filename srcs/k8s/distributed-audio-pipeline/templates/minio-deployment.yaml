@@ -59,4 +59,9 @@ spec:
             periodSeconds: 15
       volumes:
         - name: data
+          {{- if .Values.storage.minio.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "dap.minioName" . }}-data
+          {{- else }}
           emptyDir: {}
+          {{- end }}

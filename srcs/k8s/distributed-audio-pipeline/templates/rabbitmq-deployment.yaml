@@ -58,4 +58,9 @@ spec:
             periodSeconds: 15
       volumes:
         - name: data
+          {{- if .Values.storage.rabbitmq.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "dap.rabbitmqName" . }}-data
+          {{- else }}
           emptyDir: {}
+          {{- end }}

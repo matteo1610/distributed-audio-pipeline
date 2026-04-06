@@ -43,6 +43,15 @@ Then access:
 - Prometheus: http://localhost:9090
 - Grafana: http://localhost:3000 (admin/admin)
 
+## Kubernetes
+
+The Kubernetes/local kind workflow now lives in [srcs/k8s/README.md](srcs/k8s/README.md).
+
+It uses two Helm releases:
+
+- App stack: API, worker, PostgreSQL, RabbitMQ, and MinIO
+- Optional observability stack: Prometheus and Grafana
+
 ## API Documentation
 
 The backend API is documented in [srcs/app/README.md](srcs/app/README.md). It covers the endpoints, request formats, responses, environment variables, and local development instructions.

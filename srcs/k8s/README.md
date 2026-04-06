@@ -10,7 +10,20 @@ The chart deploys:
 - RabbitMQ
 - MinIO
 
-Storage is intentionally ephemeral in this first slice so the stack works on kind without extra storage add-ons.
+Stateful services now use PVCs by default (PostgreSQL, RabbitMQ, MinIO, Prometheus, and Grafana).
+If needed for quick experiments, you can disable each PVC in chart values and fall back to `emptyDir`.
+The API and worker images are pulled from DockerHub:
+
+- `docker.io/matteo1610/distributed-audio-api:latest`
+- `docker.io/matteo1610/distributed-audio-worker:latest`
+
+Observability is split into a separate optional chart under [observability/](observability/README.md).
+
+The chart-local files are generated from the canonical sources in `db/` and `observability/` by running:
+
+```bash
+./scripts/sync_k8s_assets.sh
+```
 
 ## Create the cluster
 
@@ -20,24 +33,18 @@ From `srcs/`:
 kind create cluster --name audio-pipeline --config k8s/kind/kind-config.yaml
 ```
 
-## Build the images
-
-```bash
-docker build -t distributed-audio-pipeline-api:dev -f app/Dockerfile app
-docker build -t distributed-audio-pipeline-worker:dev -f worker/Dockerfile .
-```
-
-Load them into kind:
-
-```bash
-kind load docker-image --name audio-pipeline distributed-audio-pipeline-api:dev
-kind load docker-image --name audio-pipeline distributed-audio-pipeline-worker:dev
-```
-
 ## Install the chart
 
 ```bash
 helm install dap k8s/distributed-audio-pipeline -f k8s/values-kind.yaml
+```
+
+## Optional observability
+
+If you want Prometheus and Grafana in the same kind cluster, install the separate chart after the app release:
+
+```bash
+helm install dap-observability k8s/observability -f k8s/observability/values-kind.yaml
 ```
 
 ## Access the services
@@ -46,6 +53,8 @@ helm install dap k8s/distributed-audio-pipeline -f k8s/values-kind.yaml
 - RabbitMQ management: http://localhost:15672
 - MinIO console: http://localhost:9001
 - Worker metrics: http://localhost:9100/metrics
+- Prometheus: http://localhost:9090
+- Grafana: http://localhost:3000
 
 ## Cleanup
 

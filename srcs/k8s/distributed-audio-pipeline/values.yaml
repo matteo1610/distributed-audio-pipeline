@@ -1,8 +1,8 @@
 api:
   replicaCount: 1
   image:
-    repository: distributed-audio-pipeline-api
-    tag: dev
+    repository: docker.io/matteo1610/distributed-audio-api
+    tag: latest
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -12,8 +12,8 @@ api:
 worker:
   replicaCount: 1
   image:
-    repository: distributed-audio-pipeline-worker
-    tag: dev
+    repository: docker.io/matteo1610/distributed-audio-worker
+    tag: latest
     pullPolicy: IfNotPresent
   metrics:
     port: 9100
@@ -64,8 +64,21 @@ auth:
 
 storage:
   postgres:
+    enabled: true
     size: 1Gi
+    accessModes:
+      - ReadWriteOnce
+    storageClassName: ""
   rabbitmq:
+    enabled: true
     size: 1Gi
+    accessModes:
+      - ReadWriteOnce
+    storageClassName: ""
   minio:
+    enabled: true
     size: 1Gi
+    accessModes:
+      - ReadWriteOnce
+    storageClassName: ""
+

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: distributed-audio-observability
+description: Helm chart for the optional observability stack
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

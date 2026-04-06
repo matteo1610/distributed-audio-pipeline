@@ -61,7 +61,12 @@ spec:
             periodSeconds: 10
       volumes:
         - name: data
+          {{- if .Values.storage.postgres.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "dap.postgresqlName" . }}-data
+          {{- else }}
           emptyDir: {}
+          {{- end }}
         - name: init-sql
           configMap:
             name: {{ include "dap.postgresqlName" . }}-init

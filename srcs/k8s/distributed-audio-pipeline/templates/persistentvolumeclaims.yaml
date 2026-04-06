@@ -1,0 +1,59 @@
+{{- if .Values.storage.postgres.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "dap.postgresqlName" . }}-data
+  labels:
+    {{- include "dap.baseLabels" . | nindent 4 }}
+    app.kubernetes.io/name: distributed-audio-pipeline
+    app.kubernetes.io/component: database
+spec:
+  accessModes:
+    {{- toYaml .Values.storage.postgres.accessModes | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.storage.postgres.size }}
+  {{- if .Values.storage.postgres.storageClassName }}
+  storageClassName: {{ .Values.storage.postgres.storageClassName | quote }}
+  {{- end }}
+{{- end }}
+---
+{{- if .Values.storage.rabbitmq.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "dap.rabbitmqName" . }}-data
+  labels:
+    {{- include "dap.baseLabels" . | nindent 4 }}
+    app.kubernetes.io/name: distributed-audio-pipeline
+    app.kubernetes.io/component: queue
+spec:
+  accessModes:
+    {{- toYaml .Values.storage.rabbitmq.accessModes | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.storage.rabbitmq.size }}
+  {{- if .Values.storage.rabbitmq.storageClassName }}
+  storageClassName: {{ .Values.storage.rabbitmq.storageClassName | quote }}
+  {{- end }}
+{{- end }}
+---
+{{- if .Values.storage.minio.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "dap.minioName" . }}-data
+  labels:
+    {{- include "dap.baseLabels" . | nindent 4 }}
+    app.kubernetes.io/name: distributed-audio-pipeline
+    app.kubernetes.io/component: storage
+spec:
+  accessModes:
+    {{- toYaml .Values.storage.minio.accessModes | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.storage.minio.size }}
+  {{- if .Values.storage.minio.storageClassName }}
+  storageClassName: {{ .Values.storage.minio.storageClassName | quote }}
+  {{- end }}
+{{- end }}

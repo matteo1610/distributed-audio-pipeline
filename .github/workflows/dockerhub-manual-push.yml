@@ -1,4 +1,4 @@
-name: Manual Docker Hub Push
+name: Docker Hub Push
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
@@ -11,6 +11,13 @@ on:
         required: true
         default: latest
         type: string
+  push:
+    branches:
+      - main
+    paths:
+      - srcs/app/**
+      - srcs/worker/**
+      - .github/workflows/dockerhub-manual-push.yml
 
 jobs:
   push-images:
@@ -48,5 +55,5 @@ jobs:
           file: ${{ matrix.dockerfile }}
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image_name }}:${{ inputs.tag }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image_name }}:${{ github.event_name == 'workflow_dispatch' && inputs.tag || 'latest' }}
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image_name }}:sha-${{ github.sha }}

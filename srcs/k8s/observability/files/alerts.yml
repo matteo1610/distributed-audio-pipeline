@@ -1,0 +1,38 @@
+groups:
+  - name: distributed-audio-pipeline-basic
+    rules:
+      - alert: ApiDown
+        expr: up{job="api"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: API target is down
+          description: Prometheus cannot scrape the API metrics endpoint for 30s.
+
+      - alert: WorkerDown
+        expr: up{job="worker"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: Worker target is down
+          description: Prometheus cannot scrape the worker metrics endpoint for 30s.
+
+      - alert: JobFailuresDetected
+        expr: increase(jobs_failed_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: Job failures detected in the last 5 minutes
+          description: One or more jobs failed recently. Check worker and API logs.
+
+      - alert: HighUploadLatency
+        expr: (rate(upload_seconds_sum{job="api"}[5m]) / clamp_min(rate(upload_seconds_count{job="api"}[5m]), 1e-9)) > 0.5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: Upload latency is high
+          description: Average upload latency has been above 0.5 seconds for 2 minutes.

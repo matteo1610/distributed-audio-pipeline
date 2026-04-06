@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "obs.fullname" . }}-grafana-datasource
+  labels:
+    {{- include "obs.baseLabels" . | nindent 4 }}
+data:
+  datasource.yml: |
+{{ tpl (.Files.Get "files/grafana-datasource.yml") . | nindent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "obs.fullname" . }}-grafana-dashboards
+  labels:
+    {{- include "obs.baseLabels" . | nindent 4 }}
+data:
+  dashboards.yml: |
+{{ tpl (.Files.Get "files/grafana-dashboards.yml") . | nindent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "obs.fullname" . }}-grafana-dashboard-distributed-audio-overview
+  labels:
+    {{- include "obs.baseLabels" . | nindent 4 }}
+data:
+  distributed-audio-overview.json: |
+{{ tpl (.Files.Get "files/distributed-audio-overview.json") . | nindent 4 }}
