@@ -20,6 +20,7 @@ class AudioJob:
     """Represents an audio processing job."""
 
     id: UUID
+    owner_id: UUID
     object_key: str
     status: JobStatus
     created_at: datetime

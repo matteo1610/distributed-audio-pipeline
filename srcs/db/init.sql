@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS jobs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     object_key TEXT NOT NULL,
     status TEXT NOT NULL CHECK (status IN ('PENDING', 'PROCESSING', 'DONE', 'FAILED')),
     error_message TEXT,
@@ -32,6 +33,7 @@ CREATE TABLE IF NOT EXISTS processing_results (
 );
 
 CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status);
+CREATE INDEX IF NOT EXISTS idx_jobs_owner_id ON jobs(owner_id);
 CREATE INDEX IF NOT EXISTS idx_jobs_object_key ON jobs(object_key);
 CREATE INDEX IF NOT EXISTS idx_processing_results_job_id ON processing_results(job_id);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);

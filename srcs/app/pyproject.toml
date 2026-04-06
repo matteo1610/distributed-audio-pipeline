@@ -1,0 +1,43 @@
+[tool.poetry]
+name = "distributed-audio-pipeline"
+version = "0.1.0"
+description = "Distributed audio processing pipeline with clean OOP architecture"
+authors = ["Distributed Audio Pipeline Contributors"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "0.115.12"
+uvicorn = { extras = ["standard"], version = "0.34.0" }
+psycopg = { extras = ["binary"], version = "3.2.6" }
+pika = "1.3.2"
+minio = "7.2.15"
+prometheus-client = "0.21.1"
+python-multipart = "0.0.20"
+pydantic = "^2.5.0"
+python-jose = { version = "^3.3.0", extras = ["cryptography"] }
+passlib = { version = "^1.7.4", extras = ["bcrypt"] }
+email-validator = "^2.2.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
+httpx = "^0.28.1"
+pytest-asyncio = "^0.23.0"
+
+[tool.poetry.scripts]
+api = "app.main:main"
+
+[build-system]
+requires = ["poetry-core>=1.9.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+ignore = ["E203", "E266", "E501", "W503"]

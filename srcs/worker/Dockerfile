@@ -8,9 +8,10 @@ ENV POETRY_VERSION=1.8.3 \
 
 RUN pip install --no-cache-dir "poetry==$POETRY_VERSION"
 
-COPY pyproject.toml ./
+COPY worker/pyproject.toml ./pyproject.toml
 RUN poetry install --only main --no-root
 
-COPY worker.py ./worker.py
+COPY app ./app
+COPY worker/worker.py ./worker.py
 
 CMD ["python", "worker.py"]

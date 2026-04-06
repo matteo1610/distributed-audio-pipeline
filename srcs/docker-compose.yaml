@@ -49,7 +49,7 @@ services:
 
   api:
     build:
-      context: ./api
+      context: ./app
     environment:
       DATABASE_URL: postgresql://app:app@postgres:5432/audio_pipeline
       RABBITMQ_HOST: rabbitmq
@@ -72,7 +72,8 @@ services:
 
   worker:
     build:
-      context: ./worker
+      context: .
+      dockerfile: worker/Dockerfile
     environment:
       DATABASE_URL: postgresql://app:app@postgres:5432/audio_pipeline
       RABBITMQ_HOST: rabbitmq
