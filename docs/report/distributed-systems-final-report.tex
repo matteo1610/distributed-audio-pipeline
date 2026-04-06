@@ -23,10 +23,20 @@
 
 \maketitle
 
-\begin{abstract}
-  This project presents a distributed, event-driven pipeline for asynchronous audio processing with built-in observability. Users upload audio files through a FastAPI service, which stores raw objects in MinIO, persists job metadata in PostgreSQL, and publishes processing requests to RabbitMQ. A decoupled worker service consumes queued jobs, extracts basic audio features (duration, sample rate, and number of channels), and writes results back to the database. The API exposes endpoints for upload, job-status tracking, and result retrieval, enabling a complete end-to-end workflow from submission to processed output.
+\begin{abstract} % max 2000 characters
 
-  The architecture is designed to satisfy key distributed-systems goals: scalability through independent horizontal scaling of API and workers, loose coupling via asynchronous messaging, and resilience through durable queues and explicit job-state transitions (PENDING, PROCESSING, DONE, FAILED). To support operational analysis, both services export Prometheus-compatible metrics that can be integrated into dashboards for throughput and latency monitoring. The full stack is containerized with Docker Compose, ensuring reproducible deployment and simplifying local experimentation. Overall, the system demonstrates how message-driven coordination, persistent state management, and observability can be combined into a practical distributed audio-processing application.
+This project presents a distributed, event-driven pipeline for asynchronous audio processing with built-in observability, deployed on a Kubernetes cluster to simulate and manage a realistic distributed environment.
+
+Users upload audio files through a FastAPI service, which stores raw objects in MinIO, persists job metadata in PostgreSQL, and publishes processing requests to RabbitMQ. A decoupled worker service consumes queued jobs, extracts basic audio features such as duration, sample rate, and number of channels, and writes the results back to the database. The API also exposes endpoints for file upload, job-status tracking, and result retrieval, enabling a complete end-to-end workflow from submission to processed output.
+
+The architecture is designed to satisfy key distributed-systems goals: scalability through independent horizontal scaling of API and worker services, loose coupling via asynchronous messaging, and resilience through durable queues and explicit job-state transitions (PENDING, PROCESSING, DONE, FAILED).
+
+To support operational analysis, both services expose compatible Prometheus metrics that can be integrated into Grafana dashboards for monitoring throughput, latency, queue backlog, and worker activity.
+
+The full stack is containerized with Docker and deployed on Kubernetes, ensuring reproducible deployment, service orchestration, controlled scalability experiments, and simplified local validation of the full processing pipeline.
+
+The system demonstrates how message-driven coordination, persistent state management, container orchestration, and observability can be combined into a practical distributed audio-processing application.
+
 \end{abstract}
 
 \section*{Disclaimer (if needed)}
@@ -276,6 +286,13 @@ Component diagrams are welcome here
 \end{quote}
 
 \subsection{Modelling}\label{modelling}
+
+\begin{figure} % BLUE = domain entities, GREEN = service / business logic, PURPLE = instructural components
+  \centering
+  \includegraphics[width=1.0\textwidth]{figures/Class Diagram.pdf}
+  \caption{Class diagram showing the main domain entities, their relationships, and how they map to infrastructural components.}
+  \label{fig:class-diagram}
+\end{figure}
 
 \begin{itemize}
   \item which \textbf{domain entities} are there?
@@ -577,6 +594,7 @@ Discuss possible future works, improvements, extensions, optimizations, etc.
 
 Also discuss here any unimplemented feature, and how you would have implemented it.
 
+\nocite{*}
 \bibliographystyle{plain}
 \bibliography{references}
 

@@ -26,13 +26,9 @@ Services:
 - RabbitMQ Management: http://localhost:15672 (app/app)
 - MinIO Console: http://localhost:9001 (minio/minio123)
 
-## API Endpoints
+## API Documentation
 
-- `POST /uploads` (multipart file upload)
-- `GET /jobs/{job_id}`
-- `GET /jobs/{job_id}/result`
-- `GET /health`
-- `GET /metrics`
+The backend API is documented in [srcs/app/README.md](srcs/app/README.md). It covers the endpoints, request formats, responses, environment variables, and local development instructions.
 
 ## Notes
 
@@ -43,13 +39,13 @@ Services:
 
 Both Python services now use Poetry as the source of truth for dependencies:
 
-- `srcs/api/pyproject.toml`
+- `srcs/app/pyproject.toml`
 - `srcs/worker/pyproject.toml`
 
 To install dependencies locally:
 
 ```bash
-cd srcs/api
+cd srcs/app
 poetry install
 
 cd ../worker
@@ -59,7 +55,7 @@ poetry install
 To add a new dependency:
 
 ```bash
-cd srcs/api
+cd srcs/app
 poetry add <package>
 
 cd ../worker
@@ -71,7 +67,7 @@ poetry add <package>
 Run tests with Poetry in each service folder:
 
 ```bash
-cd srcs/api
+cd srcs/app
 poetry install --with dev
 poetry run pytest
 
