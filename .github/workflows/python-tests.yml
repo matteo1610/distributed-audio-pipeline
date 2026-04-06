@@ -1,0 +1,48 @@
+name: Python Tests
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+on:
+  push:
+    paths:
+      - srcs/app/**
+      - srcs/worker/**
+      - .github/workflows/python-tests.yml
+  pull_request:
+    paths:
+      - srcs/app/**
+      - srcs/worker/**
+      - .github/workflows/python-tests.yml
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: app
+            service_dir: srcs/app
+          - name: worker
+            service_dir: srcs/worker
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: pip install poetry==1.8.3
+
+      - name: Install dependencies (${{ matrix.name }})
+        working-directory: ${{ matrix.service_dir }}
+        run: poetry install --with dev
+
+      - name: Run tests (${{ matrix.name }})
+        working-directory: ${{ matrix.service_dir }}
+        run: poetry run pytest -q
