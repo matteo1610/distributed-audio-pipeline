@@ -1,5 +1,9 @@
 # Distributed Audio Pipeline API
 
+This service exposes the HTTP API for the distributed audio pipeline. It handles user authentication, audio uploads, and job status retrieval.
+
+The app is built with FastAPI and relies on PostgreSQL, RabbitMQ, and MinIO for persistence, messaging, and object storage.
+
 ## What lives here
 
 - [main.py](main.py) - FastAPI app factory and server entrypoint
@@ -30,7 +34,9 @@ poetry run api
 - `GET /health`
 - `GET /metrics`
 
-## Required environment variables
+## Configuration
+
+The application works with built-in defaults, but these environment variables are the ones you would normally set in deployment.
 
 ```bash
 DATABASE_URL=postgresql://app:app@postgres:5432/audio_pipeline
@@ -50,5 +56,5 @@ AUTH_TOKEN_EXPIRE_MINUTES=60
 
 - Upload and job routes require a Bearer token.
 - The API uses PostgreSQL, RabbitMQ, and MinIO.
-- The worker service now lives in [srcs/worker](../worker).
-- Run tests with `poetry run pytest`.
+- The worker service lives in [srcs/worker](../worker).
+- Run tests for this service with `poetry run pytest` from this directory.

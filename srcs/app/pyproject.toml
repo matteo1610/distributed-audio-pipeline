@@ -17,6 +17,7 @@ python-multipart = "0.0.20"
 pydantic = "^2.5.0"
 python-jose = { version = "^3.3.0", extras = ["cryptography"] }
 passlib = { version = "^1.7.4", extras = ["bcrypt"] }
+bcrypt = "<5"
 email-validator = "^2.2.0"
 
 [tool.poetry.group.dev.dependencies]

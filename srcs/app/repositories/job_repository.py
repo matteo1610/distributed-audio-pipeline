@@ -205,7 +205,7 @@ class JobRepository:
             return None
 
         return self._build_processed_audio(
-            job_id=UUID(row[0]),
+            job_id=UUID(str(row[0])),
             duration_seconds=row[3],
             sample_rate=row[4],
             channels=row[5],

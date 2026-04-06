@@ -1,5 +1,5 @@
 # Build stage
-FROM python:3.12-slim AS builder
+FROM python:3.12.13-slim-bookworm AS builder
 
 WORKDIR /build
 
@@ -17,7 +17,7 @@ RUN pip install --no-cache-dir poetry && \
     poetry install --only main --no-root
 
 # Runtime stage
-FROM python:3.12-slim
+FROM python:3.12.13-slim-bookworm
 
 WORKDIR /srv
 
