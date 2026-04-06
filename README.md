@@ -26,6 +26,23 @@ Services:
 - RabbitMQ Management: http://localhost:15672 (app/app)
 - MinIO Console: http://localhost:9001 (minio/minio123)
 
+## Observability
+
+For detailed documentation on the local observability setup (Prometheus + Grafana), metrics, alerting rules, educational experiments, and troubleshooting, see [srcs/observability/README.md](srcs/observability/README.md).
+
+Quick start from `srcs/`:
+
+```bash
+docker compose \
+	-f docker-compose.yaml \
+	-f observability/docker-compose.observability.yaml \
+	up -d
+```
+
+Then access:
+- Prometheus: http://localhost:9090
+- Grafana: http://localhost:3000 (admin/admin)
+
 ## API Documentation
 
 The backend API is documented in [srcs/app/README.md](srcs/app/README.md). It covers the endpoints, request formats, responses, environment variables, and local development instructions.
