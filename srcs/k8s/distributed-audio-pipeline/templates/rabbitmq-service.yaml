@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "dap.rabbitmqName" . }}
+  labels:
+    {{- include "dap.baseLabels" . | nindent 4 }}
+    app.kubernetes.io/name: distributed-audio-pipeline
+    app.kubernetes.io/component: queue
+spec:
+  type: {{ .Values.rabbitmq.service.type }}
+  selector:
+    app.kubernetes.io/name: distributed-audio-pipeline
+    app.kubernetes.io/component: queue
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - name: amqp
+      port: {{ .Values.rabbitmq.service.amqpPort }}
+      targetPort: amqp
+      {{- if eq .Values.rabbitmq.service.type "NodePort" }}
+      nodePort: {{ .Values.rabbitmq.service.amqpNodePort }}
+      {{- end }}
+    - name: management
+      port: {{ .Values.rabbitmq.service.managementPort }}
+      targetPort: management
+      {{- if eq .Values.rabbitmq.service.type "NodePort" }}
+      nodePort: {{ .Values.rabbitmq.service.managementNodePort }}
+      {{- end }}

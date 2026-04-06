@@ -1,0 +1,6 @@
+apiVersion: v2
+name: distributed-audio-pipeline
+description: Helm chart for the distributed audio pipeline local Kubernetes stack
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

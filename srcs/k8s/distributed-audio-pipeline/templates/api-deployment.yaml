@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "dap.apiName" . }}
+  labels:
+    {{- include "dap.baseLabels" . | nindent 4 }}
+    app.kubernetes.io/name: distributed-audio-pipeline
+    app.kubernetes.io/component: api
+spec:
+  replicas: {{ .Values.api.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: distributed-audio-pipeline
+      app.kubernetes.io/component: api
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        {{- include "dap.baseLabels" . | nindent 8 }}
+        app.kubernetes.io/name: distributed-audio-pipeline
+        app.kubernetes.io/component: api
+    spec:
+      containers:
+        - name: api
+          image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}"
+          imagePullPolicy: {{ .Values.api.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.api.service.port }}
+          env:
+            - name: POSTGRES_USER
+              value: {{ .Values.postgresql.auth.username | quote }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "dap.fullname" . }}-secrets
+                  key: postgresql-password
+            - name: DATABASE_URL
+              value: {{ printf "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@%s:5432/%s" (include "dap.postgresqlName" .) .Values.postgresql.auth.database | quote }}
+            - name: RABBITMQ_HOST
+              value: {{ include "dap.rabbitmqName" . | quote }}
+            - name: RABBITMQ_USER
+              value: {{ .Values.rabbitmq.auth.username | quote }}
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "dap.fullname" . }}-secrets
+                  key: rabbitmq-password
+            - name: RABBITMQ_QUEUE
+              value: audio.jobs
+            - name: MINIO_ENDPOINT
+              value: {{ printf "%s:%d" (include "dap.minioName" .) (.Values.minio.service.apiPort | int) | quote }}
+            - name: MINIO_ACCESS_KEY
+              value: {{ .Values.minio.rootUser | quote }}
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "dap.fullname" . }}-secrets
+                  key: minio-root-password
+            - name: MINIO_BUCKET
+              value: {{ .Values.minio.bucket | quote }}
+            - name: AUTH_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "dap.fullname" . }}-secrets
+                  key: auth-secret-key
+            - name: AUTH_TOKEN_EXPIRE_MINUTES
+              value: {{ .Values.auth.tokenExpireMinutes | quote }}
+            - name: PYTHONUNBUFFERED
+              value: "1"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            failureThreshold: 30
+            periodSeconds: 2

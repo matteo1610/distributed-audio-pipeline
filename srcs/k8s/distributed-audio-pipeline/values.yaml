@@ -1,0 +1,71 @@
+api:
+  replicaCount: 1
+  image:
+    repository: distributed-audio-pipeline-api
+    tag: dev
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8000
+    nodePort: 30080
+
+worker:
+  replicaCount: 1
+  image:
+    repository: distributed-audio-pipeline-worker
+    tag: dev
+    pullPolicy: IfNotPresent
+  metrics:
+    port: 9100
+    service:
+      type: ClusterIP
+      nodePort: 30110
+
+postgresql:
+  image:
+    repository: postgres
+    tag: "16.13-bookworm"
+  auth:
+    username: app
+    password: app
+    database: audio_pipeline
+
+rabbitmq:
+  image:
+    repository: rabbitmq
+    tag: "4.2.5-management"
+  auth:
+    username: app
+    password: app
+  service:
+    type: ClusterIP
+    amqpPort: 5672
+    amqpNodePort: 30067
+    managementPort: 15672
+    managementNodePort: 30156
+
+minio:
+  image:
+    repository: quay.io/minio/minio
+    tag: RELEASE.2025-09-07T16-13-09Z-cpuv1
+  rootUser: minio
+  rootPassword: minio123
+  bucket: raw-audio
+  service:
+    type: ClusterIP
+    apiPort: 9000
+    apiNodePort: 30090
+    consolePort: 9001
+    consoleNodePort: 30091
+
+auth:
+  secretKey: change-me-in-production
+  tokenExpireMinutes: 60
+
+storage:
+  postgres:
+    size: 1Gi
+  rabbitmq:
+    size: 1Gi
+  minio:
+    size: 1Gi

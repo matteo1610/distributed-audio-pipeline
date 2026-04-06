@@ -1,0 +1,22 @@
+api:
+  service:
+    type: NodePort
+    nodePort: 30080
+
+worker:
+  metrics:
+    service:
+      type: NodePort
+      nodePort: 30110
+
+rabbitmq:
+  service:
+    type: NodePort
+    amqpNodePort: 30067
+    managementNodePort: 30156
+
+minio:
+  service:
+    type: NodePort
+    apiNodePort: 30090
+    consoleNodePort: 30091

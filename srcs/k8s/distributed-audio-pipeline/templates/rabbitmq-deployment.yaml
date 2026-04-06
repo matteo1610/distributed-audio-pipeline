@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "dap.rabbitmqName" . }}
+  labels:
+    {{- include "dap.baseLabels" . | nindent 4 }}
+    app.kubernetes.io/name: distributed-audio-pipeline
+    app.kubernetes.io/component: queue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: distributed-audio-pipeline
+      app.kubernetes.io/component: queue
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        {{- include "dap.baseLabels" . | nindent 8 }}
+        app.kubernetes.io/name: distributed-audio-pipeline
+        app.kubernetes.io/component: queue
+    spec:
+      containers:
+        - name: rabbitmq
+          image: "{{ .Values.rabbitmq.image.repository }}:{{ .Values.rabbitmq.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: amqp
+              containerPort: {{ .Values.rabbitmq.service.amqpPort }}
+            - name: management
+              containerPort: {{ .Values.rabbitmq.service.managementPort }}
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              value: {{ .Values.rabbitmq.auth.username | quote }}
+            - name: RABBITMQ_DEFAULT_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "dap.fullname" . }}-secrets
+                  key: rabbitmq-password
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/rabbitmq
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -ec
+                - rabbitmq-diagnostics -q ping
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -ec
+                - rabbitmq-diagnostics -q ping
+            initialDelaySeconds: 30
+            periodSeconds: 15
+      volumes:
+        - name: data
+          emptyDir: {}

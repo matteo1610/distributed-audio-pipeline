@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "dap.minioName" . }}
+  labels:
+    {{- include "dap.baseLabels" . | nindent 4 }}
+    app.kubernetes.io/name: distributed-audio-pipeline
+    app.kubernetes.io/component: storage
+spec:
+  type: {{ .Values.minio.service.type }}
+  selector:
+    app.kubernetes.io/name: distributed-audio-pipeline
+    app.kubernetes.io/component: storage
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - name: api
+      port: {{ .Values.minio.service.apiPort }}
+      targetPort: api
+      {{- if eq .Values.minio.service.type "NodePort" }}
+      nodePort: {{ .Values.minio.service.apiNodePort }}
+      {{- end }}
+    - name: console
+      port: {{ .Values.minio.service.consolePort }}
+      targetPort: console
+      {{- if eq .Values.minio.service.type "NodePort" }}
+      nodePort: {{ .Values.minio.service.consoleNodePort }}
+      {{- end }}
