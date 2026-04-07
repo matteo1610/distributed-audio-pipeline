@@ -45,7 +45,7 @@ def test_process_message_success():
 
 
 def test_process_message_extract_failure():
-    worker, _, storage, job_service, metrics = make_worker()
+    worker, broker, storage, job_service, metrics = make_worker()
 
     job_id = uuid4()
     payload = {"job_id": str(job_id), "object_key": f"{job_id}/test.wav"}
@@ -60,14 +60,19 @@ def test_process_message_extract_failure():
     job_service.mark_job_processing.assert_called_once_with(job_id)
     job_service.save_job_results.assert_not_called()
     job_service.mark_job_completed.assert_not_called()
-    job_service.mark_job_failed.assert_called_once()
-    assert "decode failed" in job_service.mark_job_failed.call_args.args[1]
-    metrics.record_job_failed.assert_called_once()
+    job_service.mark_job_pending.assert_called_once_with(job_id)
+    job_service.mark_job_failed.assert_not_called()
+    broker.publish_message.assert_called_once_with({
+        "job_id": str(job_id),
+        "object_key": payload["object_key"],
+        "attempt": 1,
+    })
+    metrics.record_job_failed.assert_not_called()
     ch.basic_ack.assert_called_once()
 
 
 def test_process_message_failure():
-    worker, _, storage, job_service, metrics = make_worker()
+    worker, broker, storage, job_service, metrics = make_worker()
 
     job_id = uuid4()
     payload = {"job_id": str(job_id), "object_key": f"{job_id}/test.wav"}
@@ -79,6 +84,31 @@ def test_process_message_failure():
     worker.process_message(ch, method, None, json.dumps(payload).encode("utf-8"))
 
     job_service.mark_job_processing.assert_called_once_with(job_id)
+    job_service.mark_job_pending.assert_called_once_with(job_id)
+    job_service.mark_job_failed.assert_not_called()
+    broker.publish_message.assert_called_once_with({
+        "job_id": str(job_id),
+        "object_key": payload["object_key"],
+        "attempt": 1,
+    })
+    metrics.record_job_failed.assert_not_called()
+    ch.basic_ack.assert_called_once()
+
+
+def test_process_message_failure_after_max_retries_marks_failed():
+    worker, _, storage, job_service, metrics = make_worker()
+
+    job_id = uuid4()
+    payload = {"job_id": str(job_id), "object_key": f"{job_id}/test.wav", "attempt": 3}
+
+    ch = MagicMock()
+    method = MagicMock(delivery_tag=1)
+    storage.download_bytes.side_effect = Exception("Download failed")
+
+    worker.process_message(ch, method, None, json.dumps(payload).encode("utf-8"))
+
+    job_service.mark_job_processing.assert_called_once_with(job_id)
+    job_service.mark_job_pending.assert_not_called()
     job_service.mark_job_failed.assert_called_once()
     assert "Download failed" in job_service.mark_job_failed.call_args.args[1]
     metrics.record_job_failed.assert_called_once()
@@ -168,5 +198,12 @@ def test_run_worker_wires_dependencies():
     start_http_server.assert_called_once_with(9100)
     wait_for_database.assert_called_once_with(fake_db)
     fake_storage.ensure_bucket_exists.assert_called_once()
-    processor_worker.assert_called_once_with(fake_broker, fake_storage, fake_job_service, fake_metrics)
+    processor_worker.assert_called_once_with(
+        fake_broker,
+        fake_storage,
+        fake_job_service,
+        fake_metrics,
+        max_retries=3,
+        retry_delay_seconds=0.0,
+    )
     fake_worker.start.assert_called_once()

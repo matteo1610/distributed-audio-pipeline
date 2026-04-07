@@ -85,6 +85,8 @@ services:
       MINIO_ACCESS_KEY: minio
       MINIO_SECRET_KEY: minio123
       MINIO_BUCKET: raw-audio
+      WORKER_MAX_RETRIES: 3
+      WORKER_RETRY_DELAY_SECONDS: 0
     depends_on:
       postgres:
         condition: service_healthy

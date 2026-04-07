@@ -75,6 +75,14 @@ class JobService:
         """
         self.job_repo.update_job_status(job_id, JobStatus.PROCESSING)
 
+    def mark_job_pending(self, job_id: UUID) -> None:
+        """Mark a job as pending.
+
+        Args:
+            job_id: Job identifier.
+        """
+        self.job_repo.update_job_status(job_id, JobStatus.PENDING)
+
     def mark_job_completed(self, job_id: UUID) -> None:
         """Mark a job as completed successfully.
         
