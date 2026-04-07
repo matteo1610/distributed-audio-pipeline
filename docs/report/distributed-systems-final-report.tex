@@ -729,47 +729,93 @@ AMQP messages carry the job ID, object key, and retry attempt counter so the wor
 
 \subsection{Fault-Tolerance}\label{fault-tolerance}
 
-\begin{itemize}
-  \item Is there any form of data \textbf{replication} / federation / sharing?
-  %
-  \begin{itemize}
-    \item \emph{why}? \emph{how} does it work?
-  \end{itemize}
+% \begin{itemize}
+%   \item Is there any form of data \textbf{replication} / federation / sharing?
+%   %
+%   \begin{itemize}
+%     \item \emph{why}? \emph{how} does it work?
+%   \end{itemize}
   
-  \item Is there any \textbf{heart-beating}, \textbf{timeout}, \textbf{retry mechanism}?
-  %
-  \begin{itemize}
-    \item \emph{why}? \emph{among} which components? \emph{how} does it work?
-  \end{itemize}
+%   \item Is there any \textbf{heart-beating}, \textbf{timeout}, \textbf{retry mechanism}?
+%   %
+%   \begin{itemize}
+%     \item \emph{why}? \emph{among} which components? \emph{how} does it work?
+%   \end{itemize}
   
-  \item Is there any form of \textbf{error handling}?
-  %
-  \begin{itemize}
-    \item \emph{what} happens when a component fails? \emph{why}? \emph{how}?
-  \end{itemize}
-\end{itemize}
+%   \item Is there any form of \textbf{error handling}?
+%   %
+%   \begin{itemize}
+%     \item \emph{what} happens when a component fails? \emph{why}? \emph{how}?
+%   \end{itemize}
+% \end{itemize}
+
+Fault tolerance in this system is based on \textbf{durable state}, \textbf{asynchronous retries}, and \textbf{component isolation}.
+There is no separate replication layer for the application logic itself; instead, resilience comes from storing business data in \textbf{durable backends} and keeping the message broker as a \textbf{coordination layer} rather than as the source of truth.
+PostgreSQL stores job metadata, state transitions, and processing outcomes, while MinIO stores the uploaded audio objects.
+Because the persistent state is externalized, the API and worker services can restart independently without losing the information needed to resume processing.
+
+Retry handling is applied to \textbf{transient failures} that can occur during processing or storage access.
+If a worker cannot complete a job because of a temporary issue, the message can be retried and the job remains recoverable until the retry budget is exhausted.
+This keeps the failure policy explicit and prevents the queue from silently discarding unfinished work.
+
+Error handling is split across the components that can detect failures earliest.
+The API rejects invalid uploads and authentication failures immediately, so only valid jobs enter the system.
+The worker records processing failures in the job state, making them visible through the status and result endpoints and allowing operators to inspect persistent diagnostics.
+In this way, faults are converted into \textbf{observable job states} rather than hidden internal errors.
 
 \subsection{Availability}\label{availability}
 
-\begin{itemize}
-  \item Is there any \textbf{caching} mechanism?
-  %
-  \begin{itemize}
-    \item \emph{where}? \emph{why}?
-  \end{itemize}
+% \begin{itemize}
+%   \item Is there any \textbf{caching} mechanism?
+%   %
+%   \begin{itemize}
+%     \item \emph{where}? \emph{why}?
+%   \end{itemize}
   
-  \item Is there any form of \textbf{load balancing}?
-  %
-  \begin{itemize}
-    \item \emph{where}? \emph{why}?
-  \end{itemize}
+%   \item Is there any form of \textbf{load balancing}?
+%   %
+%   \begin{itemize}
+%     \item \emph{where}? \emph{why}?
+%   \end{itemize}
 
-  \item In case of \textbf{network partitioning}, how does the system behave?
-  %
-  \begin{itemize}
-    \item \emph{why}? \emph{how}?
-  \end{itemize}
-\end{itemize}
+%   \item In case of \textbf{network partitioning}, how does the system behave?
+%   %
+%   \begin{itemize}
+%     \item \emph{why}? \emph{how}?
+%   \end{itemize}
+% \end{itemize}
+
+The system does not rely on a dedicated \textbf{caching} layer.
+This choice is deliberate: the most frequently accessed data are job metadata, processing state, and final results, all of which are already stored in durable backends and are small enough to retrieve directly.
+Avoiding cache invalidation logic keeps the system simpler and reduces the risk of serving stale job information.
+
+Availability is instead improved through \textbf{load balancing} and \textbf{horizontal replication of stateless services}.
+In Kubernetes, the API can run with multiple replicas behind a Service, so incoming HTTP traffic is distributed across available instances.
+Worker replicas also scale horizontally and consume from the same RabbitMQ queue, which makes processing capacity more resilient to spikes in demand or temporary pod restarts.
+
+In case of \textbf{network partitioning}, the system degrades in a controlled way rather than hiding partial failures.
+If the API cannot reach the broker or the storage backends, uploads fail fast and return an error instead of accepting jobs that cannot be completed.
+If workers lose connectivity while processing, jobs remain persisted and can be retried once connectivity is restored.
+This behavior favors consistency and recoverability over masking broken communication paths, which is appropriate for an asynchronous processing pipeline.
+
+
+\subsection{Observability}\label{observability}
+
+Observability is treated as a first-class design concern because the pipeline is asynchronous and spans multiple loosely coupled components.
+The goal is not only to detect failures, but also to understand how requests move through the system, where work accumulates, and which component becomes a bottleneck under load.
+For this reason, the observability solution is built around \textbf{metric exposure}, \textbf{centralized scraping}, and \textbf{dashboard-based visualization}.
+
+Each runtime component exposes Prometheus-compatible metrics that describe its own behavior.
+The API reports request volume and latency, the worker reports processing activity and failure counts, and the queue layer exposes backlog-related signals that indicate whether processing capacity is keeping up with demand.
+These metrics are aligned with the most relevant quality concerns of the project: responsiveness, throughput, reliability, and scaling behavior.
+
+Prometheus acts as the collection layer by scraping the exposed metrics at regular intervals and storing them in a time-series format.
+Grafana then consumes those metrics to provide a consolidated view of the system, making it easier to inspect trends over time and correlate events such as upload bursts, queue growth, and worker slowdowns.
+This separation between metric production and visualization keeps the application code lightweight while still giving a clear operational picture.
+
+From a design perspective, observability also supports validation and debugging.
+When a job remains pending for too long or a worker begins failing repeatedly, the metrics make the problem visible before it becomes a silent functional error.
+In that sense, the monitoring stack complements fault tolerance: fault tolerance preserves correctness under failure, while observability makes the failure itself measurable and actionable.
 
 \subsection{Security}\label{security}
 
