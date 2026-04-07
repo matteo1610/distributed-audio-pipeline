@@ -2,8 +2,10 @@
 import logging
 import time
 from contextlib import asynccontextmanager
+import os
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from starlette.responses import Response
 
@@ -80,6 +82,20 @@ def create_app() -> FastAPI:
         description="API for distributed audio file processing",
         version="0.1.0",
         lifespan=lifespan,
+    )
+
+    frontend_origins = os.getenv(
+        "FRONTEND_ORIGINS",
+        "http://localhost:5173,http://127.0.0.1:5173,http://localhost:8080,http://127.0.0.1:8080",
+    )
+    allow_origins = [origin.strip() for origin in frontend_origins.split(",") if origin.strip()]
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=allow_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
 
     # Include routes

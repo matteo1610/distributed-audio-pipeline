@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Audio Pipeline Console</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="bg-shape bg-shape-one"></div>
+    <div class="bg-shape bg-shape-two"></div>
+
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Distributed Systems Toolkit</p>
+        <h1>Audio Pipeline Console</h1>
+      </div>
+      <div class="api-config">
+        <label for="apiBase">API Base URL</label>
+        <input id="apiBase" type="text" value="http://localhost:8000" />
+      </div>
+    </header>
+
+    <main class="grid">
+      <section class="panel">
+        <h2>Authentication</h2>
+        <form id="registerForm" class="stack" autocomplete="off">
+          <h3>Create account</h3>
+          <input name="username" placeholder="Username" required />
+          <input name="email" type="email" placeholder="Email" required />
+          <input name="password" type="password" placeholder="Password" minlength="8" required />
+          <button type="submit">Register</button>
+        </form>
+
+        <form id="loginForm" class="stack" autocomplete="off">
+          <h3>Sign in</h3>
+          <input name="username" placeholder="Username" required />
+          <input name="password" type="password" placeholder="Password" required />
+          <button type="submit">Login</button>
+        </form>
+
+        <div class="stack inline-actions">
+          <button id="meBtn" type="button">Who am I?</button>
+          <button id="logoutBtn" type="button" class="ghost">Logout</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Upload Audio</h2>
+        <form id="uploadForm" class="stack">
+          <input id="audioFile" type="file" accept="audio/*" required />
+          <button type="submit">Upload and process</button>
+        </form>
+
+        <div class="status-line">
+          <span>Last job ID:</span>
+          <code id="lastJobId">none</code>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Job Tracking</h2>
+        <form id="statusForm" class="stack">
+          <input id="jobIdInput" placeholder="Paste job id" required />
+          <div class="inline-actions">
+            <button type="submit">Get status</button>
+            <button id="resultsBtn" type="button" class="ghost">Get results</button>
+          </div>
+        </form>
+
+        <div class="inline-actions">
+          <button id="startPollingBtn" type="button">Start polling</button>
+          <button id="stopPollingBtn" type="button" class="ghost">Stop polling</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>System</h2>
+        <div class="inline-actions">
+          <button id="healthBtn" type="button">Check health</button>
+          <button id="metricsBtn" type="button" class="ghost">Sample metrics</button>
+        </div>
+      </section>
+    </main>
+
+    <section class="panel console-panel">
+      <div class="console-header">
+        <h2>Console</h2>
+        <button id="clearLogBtn" type="button" class="ghost">Clear</button>
+      </div>
+      <pre id="logOutput" aria-live="polite"></pre>
+    </section>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

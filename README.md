@@ -6,6 +6,7 @@ This repository now includes an initial local development stack for the first en
 
 - API service (FastAPI)
 - Worker service (queue consumer)
+- Frontend console (static UI)
 - PostgreSQL
 - RabbitMQ
 - MinIO
@@ -23,8 +24,11 @@ Services:
 
 - API: http://localhost:8000
 - API docs: http://localhost:8000/docs
+- Frontend console: http://localhost:5173
 - RabbitMQ Management: http://localhost:15672 (app/app)
 - MinIO Console: http://localhost:9001 (minio/minio123)
+
+The frontend UI is documented in [srcs/frontend/README.md](srcs/frontend/README.md).
 
 ## Observability
 

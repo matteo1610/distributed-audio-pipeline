@@ -52,6 +52,7 @@ services:
       context: ./app
     environment:
       DATABASE_URL: postgresql://app:app@postgres:5432/audio_pipeline
+      FRONTEND_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_USER: app
       RABBITMQ_PASSWORD: app
@@ -91,6 +92,15 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+
+  frontend:
+    image: nginx:1.29-alpine
+    ports:
+      - "5173:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+    depends_on:
+      - api
 
 volumes:
   postgres_data:
