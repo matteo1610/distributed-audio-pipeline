@@ -2,7 +2,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage{hyperref}
 \usepackage{url}
-\usepackage{natbib}
+\usepackage[numbers]{natbib}
 \usepackage{graphicx}
 \usepackage{cleveref} % this must be the last package to be loaded
 
@@ -805,6 +805,18 @@ Observability is treated as a first-class design concern because the pipeline is
 The goal is not only to detect failures, but also to understand how requests move through the system, where work accumulates, and which component becomes a bottleneck under load.
 For this reason, the observability solution is built around \textbf{metric exposure}, \textbf{centralized scraping}, and \textbf{dashboard-based visualization}.
 
+\begin{figure}
+  \centering
+  \includegraphics[width=1.0\textwidth]{figures/observability-overview.png}
+  \caption{Simplified three-layer observability view: workload components, Prometheus collection, and Grafana visualization.}
+  \label{fig:observability-overview}
+\end{figure}
+
+A simplified view of the monitoring architecture is shown in \cref{fig:observability-overview}.
+The first layer contains the main workload components of the pipeline (API, RabbitMQ, worker, PostgreSQL, and MinIO).
+The second layer contains Prometheus, which collects metrics from those components.
+The third layer contains Grafana, which visualizes the collected metrics through dashboards.
+
 Each runtime component exposes Prometheus-compatible metrics that describe its own behavior.
 The API reports request volume and latency, the worker reports processing activity and failure counts, and the queue layer exposes backlog-related signals that indicate whether processing capacity is keeping up with demand.
 These metrics are aligned with the most relevant quality concerns of the project: responsiveness, throughput, reliability, and scaling behavior.
@@ -850,114 +862,242 @@ The system employs two complementary cryptographic mechanisms:
 
 \section{Implementation}\label{implementation}
 
-Please report here all the implementation (technology-dependent) choices you made while implementing your design.
+% Please report here all the implementation (technology-dependent) choices you made while implementing your design.
 
-\begin{quote}
-  If you run out of time for this project, you may consider leaving some aspect unimplemented, 
-  and simply discuss how you would have implemented them.
-  %
-  In this case, better would be to discuss unimplemented features in \cref{future-works}.
-\end{quote}
+% \begin{quote}
+%   If you run out of time for this project, you may consider leaving some aspect unimplemented, 
+%   and simply discuss how you would have implemented them.
+%   %
+%   In this case, better would be to discuss unimplemented features in \cref{future-works}.
+% \end{quote}
 
-\begin{itemize}
-  \item which \textbf{network protocols} to use?
-  %
-  \begin{itemize}
-    \item e.g.~UDP, TCP, HTTP, WebSockets, gRPC, XMPP, AMQP, MQTT, etc.
-  \end{itemize}
-  
-  \item how should \emph{in-transit data} be \textbf{represented}?
-  %
-  \begin{itemize}
-    \item e.g.~JSON, XML, YAML, Protocol Buffers, etc.
-  \end{itemize}
-  
-  \item how should \emph{databases} be \textbf{queried}?
-  %
-  \begin{itemize}
-    \item e.g.~SQL, NoSQL, etc.
-  \end{itemize}
-  
-  \item how should components be \emph{authenticated}?
-  %
-  \begin{itemize}
-    \item e.g.~OAuth, JWT, etc.
-  \end{itemize}
+% \begin{itemize}
+%   \item which \textbf{network protocols} to use?
+%   %
+%   \begin{itemize}
+%     \item e.g.~UDP, TCP, HTTP, WebSockets, gRPC, XMPP, AMQP, MQTT, etc.
+%   \end{itemize}
+%   
+%   \item how should \emph{in-transit data} be \textbf{represented}?
+%   %
+%   \begin{itemize}
+%     \item e.g.~JSON, XML, YAML, Protocol Buffers, etc.
+%   \end{itemize}
+%   
+%   \item how should \emph{databases} be \textbf{queried}?
+%   %
+%   \begin{itemize}
+%     \item e.g.~SQL, NoSQL, etc.
+%   \end{itemize}
+%   
+%   \item how should components be \emph{authenticated}?
+%   %
+%   \begin{itemize}
+%     \item e.g.~OAuth, JWT, etc.
+%   \end{itemize}
 
-  \item how should components be \emph{authorized}?
-  %
-  \begin{itemize}
-    \item e.g.~RBAC, ABAC, etc.
-  \end{itemize}
-\end{itemize}
+%   \item how should components be \emph{authorized}?
+%   %
+%   \begin{itemize}
+%     \item e.g.~RBAC, ABAC, etc.
+%   \end{itemize}
+% \end{itemize}
 
-\subsection{Technological details}\label{technological-details}
 
-\begin{itemize}
-  \item any particular \emph{framework} / \emph{technology} being exploited goes here
-\end{itemize}
+The implementation mirrors the architecture: a FastAPI-based API service, a separate background worker, a lightweight browser frontend, and containerized infrastructure for local and cluster-based deployment.
+
+The API and frontend communicate over \textbf{HTTP}, while the worker is coordinated asynchronously through \textbf{AMQP} via RabbitMQ. In-transit data is represented mostly as \textbf{JSON} for API responses and queue messages, with \texttt{multipart/form-data} for uploads and form-encoded credentials for login. PostgreSQL is queried directly with \textbf{SQL} through \texttt{psycopg}, using a relational schema for users, jobs, and processing results.
+
+Authentication uses \textbf{JWT} access tokens with \textbf{bcrypt} password hashing, and authorization relies on \textbf{RBAC} plus job ownership checks so users only access their own data. The implementation is built with \textbf{FastAPI}, \textbf{Uvicorn}, and \textbf{Poetry}; it also uses RabbitMQ, MinIO, Prometheus-compatible metrics, and Python's standard \texttt{wave} module to extract WAV audio features.
+
+Deployment is container-based through Docker Compose for local runs and Kubernetes/Helm assets for cluster deployment. The repository includes separate Dockerfiles for the API and worker, plus a static frontend served as a lightweight web client. The API runs as a FastAPI application served by Uvicorn, the worker runs as a separate Python process sharing the same domain modules, and observability is exposed through prometheus-client.
+
+% \begin{itemize}
+%   \item any particular \emph{framework} / \emph{technology} being exploited goes here
+% \end{itemize}%
+
 
 \section{Validation}\label{validation}
 
 \subsection{Automatic Testing}\label{automatic-testing}
 
-\begin{itemize}
-  \item how were individual components \textbf{\emph{unit}-test}ed?
+% \begin{itemize}
+%   \item how were individual components \textbf{\emph{unit}-test}ed?
   
-  \item how was communication, interaction, and/or integration among components tested?
+%   \item how was communication, interaction, and/or integration among components tested?
   
-  \item how to \textbf{\emph{end-to-end}-test} the system?
-  %
-  \begin{itemize}
-    \item e.g.~production vs.~test environment
-  \end{itemize}
+%   \item how to \textbf{\emph{end-to-end}-test} the system?
+%   %
+%   \begin{itemize}
+%     \item e.g.~production vs.~test environment
+%   \end{itemize}
 
-  \item for each test specify:
-  %
-  \begin{itemize}
-    \item rationale of individual tests
-    \item how were the test automated
-    \item how to run them
-    \item which requirement they are testing, if any
-  \end{itemize}
-\end{itemize}
+%   \item for each test specify:
+%   %
+%   \begin{itemize}
+%     \item rationale of individual tests
+%     \item how were the test automated
+%     \item how to run them
+%     \item which requirement they are testing, if any
+%   \end{itemize}
+% \end{itemize}
 
-\begin{quote}
-recall that \emph{deployment} \textbf{automation} is commonly used to \emph{test} the system in \emph{production-like} environment
-\end{quote}
+% \begin{quote}
+% recall that \emph{deployment} \textbf{automation} is commonly used to \emph{test} the system in \emph{production-like} environment
+% \end{quote}
 
-\begin{quote}
-recall to test corner cases (crashes, errors, etc.)
-\end{quote}
+% \begin{quote}
+% recall to test corner cases (crashes, errors, etc.)
+% \end{quote}
+
+Automatic testing is currently based on \textbf{unit and component-level tests} for the two Python services. The API test suite uses \texttt{FastAPI.TestClient} together with mocks to cover health and metrics endpoints, registration and login, upload handling, job status and result retrieval, and the main failure paths. The worker test suite uses mocked broker, storage, database, and metrics dependencies to verify message processing, retry handling, startup wiring, and database-readiness checks.
+
+Concretely, the main automated test files are \path{srcs/app/tests/test_api.py}, \path{srcs/app/tests/test_auth.py}, and \path{srcs/worker/tests/test_worker.py}.
+
+These tests are automated with \texttt{pytest} and focus on service logic in isolation, so they validate request handling, authentication flow, message consumption, and state transitions without relying on live infrastructure. The API tests can be run from \path{srcs/app} with \texttt{poetry run pytest}, and the worker tests can be run from \path{srcs/worker} with \texttt{poetry run pytest}.
+
+In addition, the GitHub Actions workflow \path{.github/workflows/python-tests.yml} executes the test suites automatically on push and pull request events when files under \path{srcs/app/**}, \path{srcs/worker/**}, or the workflow file itself are modified. A full end-to-end suite is not automated yet; complete-stack verification is still done manually during deployment and smoke testing.
 
 \subsection{Acceptance test}\label{acceptance-test}
 
-\begin{itemize}
-  \item did you perform any \emph{manual} testing?
-  %
-  \begin{itemize}
-    \item what did you test?
-    \item why wasn't it automatic?
-  \end{itemize}
-\end{itemize}
+% \begin{itemize}
+%   \item did you perform any \emph{manual} testing?
+%   %
+%   \begin{itemize}
+%     \item what did you test?
+%     \item why wasn't it automatic?
+%   \end{itemize}
+% \end{itemize}
+
+Manual acceptance testing was performed on the full Docker Compose stack to validate the end-to-end user workflow in a production-like local environment. The main checks were: user registration and login, authenticated upload from the frontend/API client, job status polling through lifecycle states, result retrieval after worker completion, and basic failure visibility when invalid inputs or processing errors occur.
+
+This part is still manual because it spans multiple containers and infrastructure dependencies (API, worker, RabbitMQ, PostgreSQL, MinIO, and frontend), and the project currently prioritizes unit/component automation for service logic.
 
 \section{Deployment}\label{deployment}
 
-\begin{itemize}
-  \item should one install your software from scratch, how to do it?
-  %
-  \begin{itemize}
-    \item provide instructions
-    \item provide expected outcomes
-  \end{itemize}
+% \begin{itemize}
+%   \item should one install your software from scratch, how to do it?
+%   %
+%   \begin{itemize}
+%     \item provide instructions
+%     \item provide expected outcomes
+%   \end{itemize}
 
-  \item what software should be installed on the machines to run your project? which versions?
+%   \item what software should be installed on the machines to run your project? which versions?
   
-  \item should one set environment variables or configuration files?
+%   \item should one set environment variables or configuration files?
   
-  \item if you're using containerization (e.g.~Docker), 
-  describe how you engineered your deployment scrips (e.g. \texttt{docker-compose.yml} files)
+%   \item if you're using containerization (e.g.~Docker), 
+%   describe how you engineered your deployment scrips (e.g. \texttt{docker-compose.yml} files)
+% \end{itemize}
+
+Deployment is provided in two reproducible modes: Docker Compose for local execution and kind+Helm for local Kubernetes execution.
+The Compose path is the default for fast setup, while the Kubernetes path is used for orchestration-oriented experiments.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.78\textwidth]{figures/component-diagram.pdf}
+  \caption{Kubernetes deployment view (logical mapping of API, worker, RabbitMQ, PostgreSQL, and MinIO as separate services/pods).}
+  \label{fig:k8s-deployment-view}
+\end{figure}
+
+\subsection*{Required software and versions}
+
+To run the project from scratch with containers, the machine needs:
+\begin{itemize}
+  \item Docker Engine and Docker Compose plugin (for local multi-container deployment);
 \end{itemize}
+
+For the Kubernetes path, the machine also needs:
+\begin{itemize}
+  \item kind;
+  \item kubectl;
+  \item Helm 3.
+\end{itemize}
+
+Main runtime versions are pinned in images and chart values:
+\begin{itemize}
+  \item PostgreSQL \texttt{16.13-bookworm};
+  \item RabbitMQ \texttt{4.2.5-management};
+  \item MinIO \texttt{RELEASE.2025-09-07T16-13-09Z-cpuv1};
+  \item Prometheus \texttt{v2.55.1};
+  \item Grafana \texttt{11.2.0};
+  \item Python \texttt{3.12.13} for API and worker images.
+\end{itemize}
+
+\subsection*{From-scratch installation with Docker Compose}
+
+From repository root:
+\begin{verbatim}
+cd srcs
+docker compose up --build
+\end{verbatim}
+
+Expected outcomes:
+\begin{itemize}
+  \item API reachable on \url{http://localhost:8000};
+  \item Frontend reachable on \url{http://localhost:5173};
+  \item RabbitMQ management UI on \url{http://localhost:15672};
+  \item MinIO console on \url{http://localhost:9001}.
+\end{itemize}
+
+To include observability in the same local deployment:
+\begin{verbatim}
+cd srcs
+docker compose -f docker-compose.yaml \
+  -f observability/docker-compose.observability.yaml up -d
+\end{verbatim}
+
+Additional expected outcomes:
+\begin{itemize}
+  \item Prometheus on \url{http://localhost:9090};
+  \item Grafana on \url{http://localhost:3000} (default \texttt{admin/admin}).
+\end{itemize}
+
+\subsection*{From-scratch installation with kind and Helm}
+
+From \path{srcs}, create a local cluster and deploy the application chart:
+\begin{verbatim}
+kind create cluster --name audio-pipeline --config k8s/kind/kind-config.yaml
+helm install dap k8s/distributed-audio-pipeline -f k8s/values-kind.yaml
+\end{verbatim}
+
+Then optionally deploy observability:
+\begin{verbatim}
+helm install dap-observability k8s/observability -f k8s/observability/values-kind.yaml
+\end{verbatim}
+
+Expected outcomes through kind host port mappings:
+\begin{itemize}
+  \item API on \url{http://localhost:8000};
+  \item Worker metrics on \url{http://localhost:9100/metrics};
+  \item RabbitMQ management on \url{http://localhost:15672};
+  \item MinIO API/console on \url{http://localhost:9000} and \url{http://localhost:9001};
+  \item Prometheus and Grafana on \url{http://localhost:9090} and \url{http://localhost:3000}.
+\end{itemize}
+
+\subsection*{Environment variables and configuration files}
+
+The Compose deployment defines runtime variables directly in \path{srcs/docker-compose.yaml}.
+For API local development, a reference template is provided in \path{srcs/app/.env.example}, covering database, broker, object storage, and API host/port settings.
+
+In Kubernetes, configuration is managed through Helm values files:
+\begin{itemize}
+  \item \path{srcs/k8s/values-kind.yaml};
+  \item \path{srcs/k8s/distributed-audio-pipeline/values.yaml};
+  \item \path{srcs/k8s/observability/values-kind.yaml}.
+\end{itemize}
+These files define service types, NodePorts, image tags, credentials, and storage settings.
+
+\subsection*{How deployment assets are engineered}
+
+Deployment assets follow a layered design.
+The base stack is defined in \path{srcs/docker-compose.yaml} (API, worker, PostgreSQL, RabbitMQ, MinIO, frontend), with health checks and service dependency conditions to enforce startup ordering.
+Observability is added as a Compose overlay in \path{srcs/observability/docker-compose.observability.yaml}, so monitoring can be enabled without modifying the base file.
+
+For Kubernetes, the project uses two Helm charts: one for the application stack (\path{srcs/k8s/distributed-audio-pipeline}) and one optional chart for observability (\path{srcs/k8s/observability}).
+To keep chart-embedded assets aligned with canonical sources, the script \path{srcs/scripts/sync_k8s_assets.sh} copies SQL and observability configuration files into chart \path{files/} directories before release updates.
+
 
 \section{User Guide}\label{user-guide}
 
