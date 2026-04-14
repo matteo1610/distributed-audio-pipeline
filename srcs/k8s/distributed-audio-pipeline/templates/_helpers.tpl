@@ -18,3 +18,4 @@ helm.sh/chart: {{ include "dap.chart" . }}
 {{- define "dap.rabbitmqName" -}}{{ include "dap.fullname" . }}-rabbitmq{{- end -}}
 {{- define "dap.minioName" -}}{{ include "dap.fullname" . }}-minio{{- end -}}
 {{- define "dap.workerMetricsName" -}}{{ include "dap.fullname" . }}-worker-metrics{{- end -}}
+{{- define "dap.frontendName" -}}{{ include "dap.fullname" . }}-frontend{{- end -}}

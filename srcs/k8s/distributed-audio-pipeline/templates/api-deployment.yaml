@@ -66,6 +66,8 @@ spec:
                   key: auth-secret-key
             - name: AUTH_TOKEN_EXPIRE_MINUTES
               value: {{ .Values.auth.tokenExpireMinutes | quote }}
+            - name: FRONTEND_ORIGINS
+              value: {{ join "," .Values.api.frontendOrigins | quote }}
             - name: PYTHONUNBUFFERED
               value: "1"
           readinessProbe:

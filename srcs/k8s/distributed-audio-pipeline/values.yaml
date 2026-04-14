@@ -8,6 +8,32 @@ api:
     type: ClusterIP
     port: 8000
     nodePort: 30080
+  frontendOrigins:
+    - http://localhost:5173
+    - http://127.0.0.1:5173
+    - http://localhost:8080
+    - http://127.0.0.1:8080
+    - http://localhost:30517
+    - http://127.0.0.1:30517
+    - http://localhost
+    - http://127.0.0.1
+
+frontend:
+  replicaCount: 1
+  image:
+    repository: docker.io/matteo1610/distributed-audio-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+    nodePort: 30517
+
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+  host: localhost
 
 worker:
   replicaCount: 1

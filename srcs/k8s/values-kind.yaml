@@ -3,6 +3,11 @@ api:
     type: NodePort
     nodePort: 30080
 
+frontend:
+  service:
+    type: NodePort
+    nodePort: 30517
+
 worker:
   metrics:
     service:

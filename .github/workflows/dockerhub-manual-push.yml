@@ -16,6 +16,7 @@ on:
       - main
     paths:
       - srcs/app/**
+      - srcs/frontend/**
       - srcs/worker/**
       - .github/workflows/dockerhub-manual-push.yml
 
@@ -31,6 +32,9 @@ jobs:
           - image_name: distributed-audio-api
             context: ./srcs/app
             dockerfile: ./srcs/app/Dockerfile
+          - image_name: distributed-audio-frontend
+            context: ./srcs/frontend
+            dockerfile: ./srcs/frontend/Dockerfile
           - image_name: distributed-audio-worker
             context: ./srcs
             dockerfile: ./srcs/worker/Dockerfile
