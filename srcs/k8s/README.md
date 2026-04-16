@@ -19,6 +19,8 @@ The API and worker images are pulled from DockerHub:
 - `docker.io/matteo1610/distributed-audio-frontend:latest`
 - `docker.io/matteo1610/distributed-audio-worker:latest`
 
+The CI workflow publishes these images as multi-arch manifests (`linux/amd64` and `linux/arm64`) so kind clusters on Apple Silicon can pull them without platform mismatch errors.
+
 Observability is split into a separate optional chart under [observability/](observability/README.md).
 
 The chart-local files are generated from the canonical sources in `db/` and `observability/` by running:
