@@ -8,14 +8,14 @@ rule_files:
 scrape_configs:
   - job_name: prometheus
     static_configs:
-      - targets: ["prometheus:9090"]
+      - targets: ["{{ include "obs.fullname" . }}-prometheus:{{ .Values.prometheus.service.port }}"]
 
   - job_name: api
     metrics_path: /metrics
     static_configs:
-      - targets: ["api:8000"]
+      - targets: ["{{ .Values.prometheus.scrapeTargets.api }}"]
 
   - job_name: worker
     metrics_path: /metrics
     static_configs:
-      - targets: ["worker:9100"]
+      - targets: ["{{ .Values.prometheus.scrapeTargets.worker }}"]

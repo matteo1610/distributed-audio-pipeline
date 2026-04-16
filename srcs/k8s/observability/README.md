@@ -13,6 +13,8 @@ The default scrape targets expect the app release name to be `dap`:
 
 If you use a different app release name, override `prometheus.scrapeTargets` in `values.yaml` or `values-kind.yaml`.
 
+The Grafana datasource target is release-aware and points to the Prometheus service of the same observability Helm release (for example `dap-observability-prometheus:9090`).
+
 ## Install
 
 From `srcs/`:

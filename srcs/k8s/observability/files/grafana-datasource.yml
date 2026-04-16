@@ -5,6 +5,6 @@ datasources:
     uid: prometheus
     type: prometheus
     access: proxy
-    url: http://prometheus:9090
+    url: http://{{ include "obs.fullname" . }}-prometheus:{{ .Values.prometheus.service.port }}
     isDefault: true
     editable: true
