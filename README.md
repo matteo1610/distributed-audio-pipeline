@@ -1,107 +1,40 @@
 # Distributed Audio Processing Pipeline with Observability
-
 ## Overview
+This project implements a scalable, distributed audio processing pipeline with built-in observability features. It enables efficient processing of large-scale audio workloads across multiple nodes with comprehensive monitoring and tracing capabilities. For detailed architecture and implementation specifics refer to the [project report](./docs/report/distributed-systems-final-report.pdf).
 
-This repository now includes an initial local development stack for the first end-to-end pipeline slice:
+## Structure
 
-- API service (FastAPI)
-- Worker service (queue consumer)
-- Frontend console (static UI)
-- PostgreSQL
-- RabbitMQ
-- MinIO
+- **`.github/`** - CI/CD workflows for Docker and Python tests
+- **`docs/`** - Diagrams, proposal, next steps, and the full project report with LaTeX source
+- **`srcs/`** - All source code:
+  - **`app/`** - API with routes, auth, models, repositories, schemas, services, tests
+  - **`frontend/`** - Web UI with HTML, CSS, and JavaScript
+  - **`worker/`** - Background job processor
+  - **`k8s/`** - Two Helm charts (main app and observability) plus kind config
+  - **`observability/`** - Prometheus and Grafana configurations
+  - **`db/`** - Database initialization scripts
+  - **`scripts/`** - Utility scripts
+  - **`docker-compose.yaml`** - Docker Compose for local development
+- **Root files** - LICENSE, .gitignore, README
 
-## Quickstart
+For more details each folder contains a README with specific instructions.
 
-From the repository root:
+## Deployment
+It can be deployed locally with Docker Compose or on Kubernetes using Helm charts.
 
-```bash
-cd srcs
-docker compose up --build
-```
-
-Services:
-
-- API: http://localhost:8000
-- API docs: http://localhost:8000/docs
-- Frontend console: http://localhost:5173
-- RabbitMQ Management: http://localhost:15672 (app/app)
-- MinIO Console: http://localhost:9001 (minio/minio123)
-
-The frontend UI is documented in [srcs/frontend/README.md](srcs/frontend/README.md).
-
-## Observability
-
-For detailed documentation on the local observability setup (Prometheus + Grafana), metrics, alerting rules, educational experiments, and troubleshooting, see [srcs/observability/README.md](srcs/observability/README.md).
-
-Quick start from `srcs/`:
+### Docker Compose
+Navigate to the `srcs/` directory and run:
 
 ```bash
-docker compose \
-	-f docker-compose.yaml \
-	-f observability/docker-compose.observability.yaml \
-	up -d
+docker compose up -d
 ```
 
-Then access:
-- Prometheus: http://localhost:9090
-- Grafana: http://localhost:3000 (admin/admin)
+This will start all components (API, worker, RabbitMQ, MinIO, PostgreSQL) in separate containers. The API will be accessible at http://localhost:8000 and the frontend at http://localhost:8080.
 
-## Kubernetes
+For deploy the observability stack separately, see [srcs/observability/README.md](./srcs/observability/README.md).
 
-The Kubernetes/local kind workflow now lives in [srcs/k8s/README.md](srcs/k8s/README.md).
+### Kubernetes
+For Kubernetes deployment, see [srcs/k8s/README.md](./srcs/k8s/README.md).
 
-It uses two Helm releases:
-
-- App stack: API, worker, PostgreSQL, RabbitMQ, and MinIO
-- Optional observability stack: Prometheus and Grafana
-
-## API Documentation
-
-The backend API is documented in [srcs/app/README.md](srcs/app/README.md). It covers the endpoints, request formats, responses, environment variables, and local development instructions.
-
-## Notes
-
-- The worker currently extracts basic WAV metadata (duration, sample rate, channels).
-- For non-WAV files, metadata fields are stored as null and the job still completes.
-
-## Python Dependencies With Poetry
-
-Both Python services now use Poetry as the source of truth for dependencies:
-
-- `srcs/app/pyproject.toml`
-- `srcs/worker/pyproject.toml`
-
-To install dependencies locally:
-
-```bash
-cd srcs/app
-poetry install
-
-cd ../worker
-poetry install
-```
-
-To add a new dependency:
-
-```bash
-cd srcs/app
-poetry add <package>
-
-cd ../worker
-poetry add <package>
-```
-
-## Running Tests
-
-Run tests with Poetry in each service folder:
-
-```bash
-cd srcs/app
-poetry install --with dev
-poetry run pytest
-
-cd ../worker
-poetry install --with dev
-poetry run pytest
-```
+## License
+This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.

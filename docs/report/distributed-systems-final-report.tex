@@ -912,6 +912,8 @@ Authentication uses \textbf{JWT} access tokens with \textbf{bcrypt} password has
 
 Deployment is container-based through Docker Compose for local runs and Kubernetes/Helm assets for cluster deployment. The repository includes separate Dockerfiles for the API and worker, plus a static frontend served as a lightweight web client. The API runs as a FastAPI application served by Uvicorn, the worker runs as a separate Python process sharing the same domain modules, and observability is exposed through prometheus-client.
 
+The source repository for the project is available at \url{https://github.com/matteo1610/distributed-audio-pipeline}.
+
 % \begin{itemize}
 %   \item any particular \emph{framework} / \emph{technology} being exploited goes here
 % \end{itemize}%
