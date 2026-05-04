@@ -29,12 +29,6 @@ frontend:
     port: 80
     nodePort: 30517
 
-ingress:
-  enabled: false
-  className: nginx
-  annotations: {}
-  host: localhost
-
 worker:
   replicaCount: 1
   image:

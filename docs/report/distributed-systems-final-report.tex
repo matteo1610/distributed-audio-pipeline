@@ -468,7 +468,7 @@ The infrastructure is built around six runtime components.
   \item \textbf{MinIO}: object storage for uploaded audio files.
 \end{itemize}
 
-Kubernetes is the default deployment model: each component runs as one or more pods, while Services provide stable endpoints for internal and external traffic.
+Kubernetes is the default deployment model: each component runs as one or more pods, while Services provide stable endpoints for internal and external traffic~\cite{burns2018designing}.
 This setup enables horizontal scaling of stateless parts, especially workers, without changing application logic.
 Service discovery is DNS-based through Kubernetes Service names, which removes hard-coded addresses and improves portability.
 Traffic distribution is handled by platform primitives: API HTTP requests are balanced at Service level, and processing load is distributed as workers compete for RabbitMQ messages.
@@ -555,7 +555,7 @@ and observable across API and worker components.
 Component interaction is structured around four recurrent runtime flows that cover the complete user-facing lifecycle:
 authentication, upload and job creation, background processing, and status/result retrieval.
 Within these flows, synchronous HTTP is used for client-facing request-response operations,
-whereas asynchronous AMQP messaging decouples ingestion from execution between API and workers.
+whereas asynchronous AMQP messaging decouples ingestion from execution between API and workers~\cite{fowler2014microservices}.
 This hybrid interaction model provides immediate feedback to clients while allowing processing to complete in the background.
 
 \subsubsection*{Flow 1: Authentication (register and login)}
@@ -994,13 +994,6 @@ This part is still manual because it spans multiple containers and infrastructur
 Deployment is provided in two reproducible modes: Docker Compose for local execution and kind+Helm for local Kubernetes execution.
 The Compose path is the default for fast setup, while the Kubernetes path is used for orchestration-oriented experiments.
 
-\begin{figure}
-  \centering
-  \includegraphics[width=0.78\textwidth]{figures/component-diagram.pdf}
-  \caption{Kubernetes deployment view (logical mapping of API, worker, RabbitMQ, PostgreSQL, and MinIO as separate services/pods).}
-  \label{fig:k8s-deployment-view}
-\end{figure}
-
 \subsection*{Required software and versions}
 
 To run the project from scratch with containers, the machine needs:
@@ -1058,13 +1051,16 @@ Additional expected outcomes:
 
 From \path{srcs}, create a local cluster and deploy the application chart:
 \begin{verbatim}
-kind create cluster --name audio-pipeline --config k8s/kind/kind-config.yaml
-helm install dap k8s/distributed-audio-pipeline -f k8s/values-kind.yaml
+kind create cluster --name audio-pipeline \
+  --config k8s/kind/kind-config.yaml
+helm install dap k8s/distributed-audio-pipeline \
+  -f k8s/values-kind.yaml
 \end{verbatim}
 
 Then optionally deploy observability:
 \begin{verbatim}
-helm install dap-observability k8s/observability -f k8s/observability/values-kind.yaml
+helm install dap-observability k8s/observability \
+  -f k8s/observability/values-kind.yaml
 \end{verbatim}
 
 Expected outcomes through kind host port mappings:
@@ -1075,6 +1071,20 @@ Expected outcomes through kind host port mappings:
   \item MinIO API/console on \url{http://localhost:9000} and \url{http://localhost:9001};
   \item Prometheus and Grafana on \url{http://localhost:9090} and \url{http://localhost:3000}.
 \end{itemize}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=1.0\textwidth]{figures/k8s-deployment/dap-k8s-deployment.png}
+  \caption{Application chart deployment in kind (release \texttt{dap}).}
+  \label{fig:k8s-dap-deployment}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=1.0\textwidth]{figures/k8s-deployment/obs-k8s-deployment.png}
+  \caption{Observability chart deployment in kind (release \texttt{dap-observability}).}
+  \label{fig:k8s-observability-deployment}
+\end{figure}
 
 \subsection*{Environment variables and configuration files}
 
@@ -1091,41 +1101,122 @@ These files define service types, NodePorts, image tags, credentials, and storag
 
 \subsection*{How deployment assets are engineered}
 
-Deployment assets follow a layered design.
-The base stack is defined in \path{srcs/docker-compose.yaml} (API, worker, PostgreSQL, RabbitMQ, MinIO, frontend), with health checks and service dependency conditions to enforce startup ordering.
-Observability is added as a Compose overlay in \path{srcs/observability/docker-compose.observability.yaml}, so monitoring can be enabled without modifying the base file.
+Deployment assets follow a \textbf{layered design}.
+For Docker Compose, the base stack is defined in \path{srcs/docker-compose.yaml} (API, worker, PostgreSQL, RabbitMQ, MinIO, frontend), with health checks and service dependency conditions to enforce startup ordering.
+Observability is added as a \textbf{compose overlay} in \path{srcs/observability/docker-compose.observability.yaml}, so monitoring can be enabled without modifying the base file.
 
-For Kubernetes, the project uses two Helm charts: one for the application stack (\path{srcs/k8s/distributed-audio-pipeline}) and one optional chart for observability (\path{srcs/k8s/observability}).
-To keep chart-embedded assets aligned with canonical sources, the script \path{srcs/scripts/sync_k8s_assets.sh} copies SQL and observability configuration files into chart \path{files/} directories before release updates.
+For Kubernetes, the project uses \textbf{two separate Helm charts}: one for the application stack (\path{srcs/k8s/distributed-audio-pipeline}) and one optional chart for observability (\path{srcs/k8s/observability}).
+This separation is intentional and fundamental: the \textbf{core system and observability infrastructure are decoupled}, allowing independent deployment, scaling, and lifecycle management.
+The application can run without observability, and monitoring can be added or updated without touching the main workload.
+To keep chart-embedded assets synchronized, the script \path{srcs/scripts/sync_k8s_assets.sh} copies SQL and observability configuration files into chart \path{files/} directories before release updates.
+
+Container image delivery is \textbf{automated} through CI: a workflow builds and pushes updated API and worker images to Docker Hub whenever significant project changes are merged, and deployment configurations then \textbf{pull tagged images from Docker Hub} (instead of rebuilding on-cluster), keeping rollouts reproducible across environments and simplifying update propagation.
+
+The Helm-based packaging also provides a \textbf{standard and repeatable deployment method across Kubernetes environments}.
+While kind is used in this project mainly for local experimentation convenience, the same chart structure and values-driven configuration can be applied with minimal changes to any conformant Kubernetes cluster.
+The default deployment profile is \textbf{intentionally basic} (single-replica settings and local-oriented resource choices) to keep execution lightweight and fast on a developer machine.
+Even so, the current chart and service decomposition already support straightforward evolution toward multi-replica workloads, stronger distribution across nodes, and more production-oriented scaling policies.
 
 
 \section{User Guide}\label{user-guide}
 
-\begin{itemize}
-  \item how to use your software?
-  %
-  \begin{itemize}
-    \item provide instructions
-    \item provide expected outcomes
-    \item provide screenshots if possible
-  \end{itemize}
-\end{itemize}
+% \begin{itemize}
+%   \item how to use your software?
+%   %
+%   \begin{itemize}
+%     \item provide instructions
+%     \item provide expected outcomes
+%     \item provide screenshots if possible
+%   \end{itemize}
+% \end{itemize}
+
+The user-facing workflow is intentionally simple: authenticate, upload an audio file, monitor the job, and retrieve the extracted metadata once processing completes. The workflow is exercised through the lightweight frontend (see Figure~\ref{fig:frontend-placeholder}), the preferred interface for manual testing of backend functionality.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=1.0\textwidth]{figures/frontend-placeholder.png}
+  \caption{Lightweight frontend used to upload files and inspect job status.}
+  \label{fig:frontend-placeholder}
+\end{figure}
+
+\subsection*{Main Workflows}
+
+\subsubsection*{1. Register and log in}
+
+Create an account or log in with existing credentials to obtain a JWT access token.
+This token is required for upload, status, and result requests.
+
+\subsubsection*{2. Upload an audio file}
+
+Use the frontend file picker or the API interface to submit an audio file.
+The system stores the file in MinIO, creates a job record in PostgreSQL, and queues the processing request asynchronously.
+
+\subsubsection*{3. Monitor job progress}
+
+After upload, the job moves through the usual lifecycle states: \texttt{PENDING}, \texttt{PROCESSING}, and \texttt{DONE} or \texttt{FAILED}.
+The frontend shows the current status and lets the user follow the processing progress in real time.
+
+\subsubsection*{4. Retrieve the extracted metadata}
+
+When the job reaches \texttt{DONE}, the user can open the result view to see the extracted audio metadata, such as duration, sample rate, and number of channels.
+
+\subsection*{Observability}
+
+If observability is deployed, you can run the provided setup and then inspect the collected metrics in Grafana.
+Grafana is available at \url{http://localhost:3000} (default credentials: \texttt{admin/admin}).
+
+The main dashboards summarize request rate, worker throughput, queue backlog, and the general health of the stack. An example Grafana dashboard is shown in Figure~\ref{fig:grafana-dashboard}; it highlights total uploads, completed jobs, failed jobs, and the 5-minute average upload latency, providing a quick operational view of pipeline health.
+To populate these panels with sample data, the repository includes a simple stress script that uploads example files: \path{srcs/scripts/stress_uploads.sh}.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=1.0\textwidth]{figures/grafana-dashboard.png}
+  \caption{Example Grafana dashboard showing total uploads, completed jobs, failed jobs, and 5-minute average upload latency.}
+  \label{fig:grafana-dashboard}
+\end{figure}
+
 
 \section{Self-evaluation}\label{self-evaluation}
 
-\begin{itemize}
-  \item An individual section is required for each member of the group
-  \item Each member must self-evaluate their work, listing the strengths and weaknesses of the product
-  \item Each member must describe their role within the group as objectively as possible.
-\end{itemize}
+% \begin{itemize}
+%   \item An individual section is required for each member of the group
+%   \item Each member must self-evaluate their work, listing the strengths and weaknesses of the product
+%   \item Each member must describe their role within the group as objectively as possible.
+% \end{itemize}
 
-It should be noted that each student is only responsible for their own section.
+% It should be noted that each student is only responsible for their own section.% \begin{itemize}
+%   \item An individual section is required for each member of the group
+%   \item Each member must self-evaluate their work, listing the strengths and weaknesses of the product
+%   \item Each member must describe their role within the group as objectively as possible.
+% \end{itemize}
+
+% It should be noted that each student is only responsible for their own section.
+
+The distributed audio pipeline successfully demonstrates a complete, production-oriented architecture combining clean separation of concerns, asynchronous message-driven communication, and built-in observability.
+
+This work spans full-stack implementation from domain modeling and FastAPI backend with JWT authentication and RBAC, through background workers, to containerized infrastructure supporting dual deployment strategies: Docker Compose for local development and Kubernetes/Helm for orchestration.
+The system achieves portability across environments while maintaining clear architectural boundaries between core services and optional monitoring layers.
+
+Observability and monitoring are integrated from the start, with Prometheus metrics and Grafana dashboards providing visibility into request rate, job completion, and queue health.
+Automated unit and component testing with CI/CD integration through GitHub Actions ensures code quality, and comprehensive technical documentation explains architectural decisions, implementation choices, and deployment procedures.
 
 \section{Future works}\label{future-works}
 
-Discuss possible future works, improvements, extensions, optimizations, etc.
+% Discuss possible future works, improvements, extensions, optimizations, etc.
 
-Also discuss here any unimplemented feature, and how you would have implemented it.
+% Also discuss here any unimplemented feature, and how you would have implemented it.
+
+This system serves as a solid foundation for a production-grade distributed audio processing pipeline. Key areas for extension and enhancement include:
+
+\begin{itemize}
+  \item \textbf{Kubernetes and infrastructure}: Extend the Helm charts with scaling policies (e.g., autoscaling based on queue depth or worker CPU), resource limits, and production-oriented network policies. Document recommended configurations for multi-replica deployments and cloud-native environments.
+  
+  \item \textbf{Observability enhancements}: Add distributed tracing (e.g., OpenTelemetry) to track requests across service boundaries and simplify debugging. Implement granular logging for error cases and state transitions. Extend Grafana dashboards with more advanced metrics and alerting rules.
+  
+  \item \textbf{Frontend implementation}: Replace the minimal placeholder with a fully-featured web interface including real-time progress indicators, detailed error messages, job history, and rich state visualization. Consider progressive loading and offline support for improved user experience.
+  
+  \item \textbf{Integration testing}: Automate end-to-end testing using container-based test harnesses (e.g., TestContainers or Docker Compose-based e2e tests) to catch regressions early and improve overall reliability.
+\end{itemize}
 
 \nocite{*}
 \bibliographystyle{plain}
