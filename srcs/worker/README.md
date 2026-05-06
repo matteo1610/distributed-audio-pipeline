@@ -11,10 +11,22 @@ It is designed to run as a separate background process alongside the API service
 
 ## Run
 
+### Poetry
+
 ```bash
 poetry install
 poetry run worker
 ```
+
+### Docker
+
+From `srcs/`:
+
+```bash
+docker compose up --build worker
+```
+
+This starts the worker together with PostgreSQL, RabbitMQ, and MinIO from the compose file.
 
 ## Behavior
 

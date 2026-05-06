@@ -18,10 +18,22 @@ The app is built with FastAPI and relies on PostgreSQL, RabbitMQ, and MinIO for 
 
 ## Run
 
+### Poetry
+
 ```bash
 poetry install
 poetry run api
 ```
+
+### Docker
+
+From `srcs/`:
+
+```bash
+docker compose up --build api
+```
+
+This starts the API together with PostgreSQL, RabbitMQ, and MinIO from the compose file.
 
 ## Main endpoints
 
