@@ -72,6 +72,18 @@ After both charts are installed, the exposed services are:
 
 If you did not install observability, the Prometheus and Grafana endpoints will not be available.
 
+## Diagrams
+
+Deployment diagrams for the two Helm charts are included below.
+
+### distributed-audio-pipeline
+
+![Distributed audio pipeline deployment](../../docs/report/figures/k8s-deployment/dap-k8s-deployment.png)
+
+### observability
+
+![Observability deployment (Prometheus & Grafana)](../../docs/report/figures/k8s-deployment/obs-k8s-deployment.png)
+
 ## Cleanup
 
 ```bash

@@ -21,7 +21,7 @@ docker compose -f observability/docker-compose.observability.yaml up -d
 
 Ensure the API (port 8000) and worker (port 9100) are already running so Prometheus can scrape their metrics endpoints.
 
-It's also possible deploy in kubernetes using the Helm chart in [k8s/observability/README.md](../k8s/observability/README.md), which includes Prometheus and Grafana with similar configurations.
+It's also possible deploy in kubernetes using the Helm chart in [k8s/README.md](../k8s/README.md), which includes Prometheus and Grafana with similar configurations.
 
 ## Endpoints
 
