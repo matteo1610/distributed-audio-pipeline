@@ -1068,6 +1068,7 @@ helm install dap-observability k8s/observability \
 Expected outcomes through kind host port mappings:
 \begin{itemize}
   \item API on \url{http://localhost:8000};
+  \item Frontend on \url{http://localhost:30517};
   \item Worker metrics on \url{http://localhost:9100/metrics};
   \item RabbitMQ management on \url{http://localhost:15672};
   \item MinIO API/console on \url{http://localhost:9000} and \url{http://localhost:9001};
@@ -1208,16 +1209,21 @@ Automated unit and component testing with CI/CD integration through GitHub Actio
 
 % Also discuss here any unimplemented feature, and how you would have implemented it.
 
-This system serves as a solid foundation for a production-grade distributed audio processing pipeline. Key areas for extension and enhancement include:
+This system serves as a solid foundation for a production-grade distributed audio processing pipeline.
+The project successfully addresses the core proposal objectives: distributed architecture, asynchronous processing, fault tolerance, and observability.
+However, several items proposed in the initial specification remain unimplemented or only partially realized.
+
+Key areas for extension and enhancement include:
 
 \begin{itemize}
-  \item \textbf{Kubernetes and infrastructure}: Extend the Helm charts with scaling policies (e.g., autoscaling based on queue depth or worker CPU), resource limits, and production-oriented network policies. Document recommended configurations for multi-replica deployments and cloud-native environments.
+  \item \textbf{Automated integration and end-to-end testing} (proposed but partially implemented): Currently, unit and component tests are automated with pytest and GitHub Actions, but full integration and end-to-end test suites remain manual.
+  Automated testing should be extended using container-based test harnesses (e.g., TestContainers or Docker Compose-based e2e scenarios) to validate the complete workflow across all services, catch regressions early, and improve overall reliability.
+
+  \item \textbf{Frontend implementation} (partially implemented): The current implementation is a minimal browser-based client. The proposal intended a fully-featured web interface; this should be enhanced with real-time progress indicators, detailed error messages, job history, and rich state visualization. Consider progressive loading, offline support, and improved user experience.
   
-  \item \textbf{Observability enhancements}: Add distributed tracing (e.g., OpenTelemetry) to track requests across service boundaries and simplify debugging. Implement granular logging for error cases and state transitions. Extend Grafana dashboards with more advanced metrics and alerting rules.
+  \item \textbf{Kubernetes and infrastructure enhancements}: Extend the Helm charts with scaling policies (e.g., autoscaling based on queue depth or worker CPU), resource limits, and production-oriented network policies. Document recommended configurations for multi-replica deployments and cloud-native environments.
   
-  \item \textbf{Frontend implementation}: Replace the minimal placeholder with a fully-featured web interface including real-time progress indicators, detailed error messages, job history, and rich state visualization. Consider progressive loading and offline support for improved user experience.
-  
-  \item \textbf{Integration testing}: Automate end-to-end testing using container-based test harnesses (e.g., TestContainers or Docker Compose-based e2e tests) to catch regressions early and improve overall reliability.
+  \item \textbf{Observability enhancements}: Add distributed tracing (e.g., OpenTelemetry) to track requests across service boundaries and simplify debugging across the pipeline. Implement granular logging for error cases and state transitions. Extend Grafana dashboards with more advanced metrics and alerting rules for operational visibility.
 \end{itemize}
 
 \nocite{*}
